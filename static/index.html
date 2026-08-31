@@ -708,6 +708,21 @@
         let currentTeacherDetail = null;
         let selectedUploadFile = null;
 
+
+        // Auth: get API key from user (stored in localStorage)
+        function getAuthHeaders() {
+            let key = localStorage.getItem('admin_api_key');
+            if (!key) {
+                key = prompt('กรุณาใส่รหัส Admin Key เพื่อดำเนินการ:');
+                if (key) localStorage.setItem('admin_api_key', key);
+            }
+            return key ? { 'X-Admin-Key': key } : {};
+        }
+        
+        function clearAuthKey() {
+            localStorage.removeItem('admin_api_key');
+        }
+
         // HTML escaping to prevent XSS
         function escHtml(str) {
             if (!str) return '';
@@ -1290,7 +1305,7 @@
                 const formData = new FormData();
                 formData.append('photo', file);
                 try {
-                    const res = await fetch(`/api/upload-photo/${teacherId}`, { method: 'POST', body: formData });
+                    const res = await fetch(`/api/upload-photo/${teacherId}`, { method: 'POST', body: formData, headers: getAuthHeaders() });
                     const data = await res.json();
                     if (data.photo_url) {
                         document.getElementById('form-photo-url').value = data.photo_url;
@@ -1388,18 +1403,21 @@
                 if (teacherId) {
                     res = await fetch(`/api/teachers/${teacherId}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                         body: JSON.stringify(payload)
                     });
                 } else {
                     res = await fetch('/api/teachers', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                         body: JSON.stringify(payload)
                     });
                 }
 
-                if (res.ok) {
+                if (res.status === 401) {
+                    clearAuthKey();
+                    showToast("รหัส Admin Key ไม่ถูกต้อง กรุณาลองใหม่", false);
+                } else if (res.ok) {
                     showToast(teacherId ? "แก้ไขข้อมูลสำเร็จเรียบร้อย" : "เพิ่มข้อมูลครูอาจารย์ใหม่สำเร็จ");
                     closeTeacherModal();
                     loadStats();
@@ -1420,7 +1438,7 @@
         async function deleteTeacherConfirm(id, name) {
             if (confirm(`คุณต้องการลบข้อมูลของ "${name}" ออกจากระบบใช่หรือไม่?`)) {
                 try {
-                    const res = await fetch(`/api/teachers/${id}`, { method: 'DELETE' });
+                    const res = await fetch(`/api/teachers/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
                     if (res.ok) {
                         showToast(`ลบข้อมูล "${name}" เรียบร้อยแล้ว`);
                         loadStats();
@@ -1442,7 +1460,7 @@
             showToast("กำลังสแกนไฟล์และรวมข้อมูลซ้ำในโฟลเดอร์...");
 
             try {
-                const res = await fetch('/api/scan', { method: 'POST' });
+                const res = await fetch('/api/scan', { method: 'POST', headers: getAuthHeaders() });
                 const data = await res.json();
                 scanIcon.classList.remove('animate-spin');
                 if (data.status === 'success') {
@@ -1493,7 +1511,7 @@
             formData.append('file', selectedUploadFile);
 
             try {
-                const res = await fetch('/api/upload-file', { method: 'POST', body: formData });
+                const res = await fetch('/api/upload-file', { method: 'POST', body: formData, headers: getAuthHeaders() });
                 const data = await res.json();
                 closeUploadModal();
                 if (data.status === 'success') {
