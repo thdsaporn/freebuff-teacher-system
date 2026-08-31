@@ -1481,13 +1481,13 @@
 ข้อมูลเดิมจะถูกลบ แต่ระบบจะสแกนไฟล์ Word/Excel ในโฟลเดอร์ใหม่อัตโนมัติ')) return;
             
             const resetIcon = document.getElementById('reset-icon');
-            resetIcon.classList.add('animate-spin');
+            if (resetIcon) resetIcon.classList.add('animate-spin');
             showToast("กำลังล้างข้อมูลและสแกนใหม่...");
             
             try {
                 const res = await authFetch('/api/reset-and-scan', { method: 'POST', headers: getAuthHeaders() });
                 const data = await res.json();
-                resetIcon.classList.remove('animate-spin');
+                if (resetIcon) resetIcon.classList.remove('animate-spin');
                 if (data.status === 'success') {
                     const r = data.result;
                     showToast(`ล้างและสแกนใหม่สำเร็จ: พบ ${r.total_processed} รายการ (ใหม่ ${r.new_count}, ซ้ำ ${r.merged_count})`);
@@ -1497,7 +1497,7 @@
                     showToast(data.detail || "เกิดข้อผิดพลาด", false);
                 }
             } catch (e) {
-                resetIcon.classList.remove('animate-spin');
+                if (resetIcon) resetIcon.classList.remove('animate-spin');
                 console.error(e);
                 showToast("เกิดข้อผิดพลาดในการล้างและสแกนใหม่", false);
             }
