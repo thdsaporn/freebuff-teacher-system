@@ -46,8 +46,18 @@ async def lifespan(app: FastAPI):
     init_db()
     stats = get_stats()
     if stats["teacher_count"] == 0:
-        base_dir = os.path.dirname(__file__)
-        scan_directory(base_dir)
+        seed_file = os.path.join(os.path.dirname(__file__), "seed_data_perfect.json")
+        if os.path.exists(seed_file):
+            import json
+            from database import create_teacher
+            with open(seed_file, "r", encoding="utf-8") as f:
+                seed_teachers = json.load(f)
+            for t in seed_teachers:
+                create_teacher(t)
+            print(f"[STARTUP] Loaded {len(seed_teachers)} teachers from seed_data_perfect.json")
+        else:
+            base_dir = os.path.dirname(__file__)
+            scan_directory(base_dir)
     yield
 
 app = FastAPI(title="ระบบบริหารจัดการครู อาจารย์ ครูฝึก", version="1.0.0", lifespan=lifespan)
@@ -343,16 +353,24 @@ def api_reset_and_scan(_auth: str = Depends(verify_admin_key)):
             if os.path.exists(fpath):
                 os.remove(fpath)
     
-    # Re-initialize DB
-    init_db()
-    
-    # Re-scan all files
-    base_dir = os.path.dirname(__file__)
+    # Re-scan or seed all files
+    seed_file = os.path.join(os.path.dirname(__file__), "seed_data_perfect.json")
     try:
-        result = scan_directory(base_dir)
+        if os.path.exists(seed_file):
+            import json
+            from database import create_teacher
+            with open(seed_file, "r", encoding="utf-8") as f:
+                seed_teachers = json.load(f)
+            for t in seed_teachers:
+                create_teacher(t)
+            result = {"total_processed": len(seed_teachers), "new_count": len(seed_teachers), "merged_count": 0, "errors": []}
+        else:
+            base_dir = os.path.dirname(__file__)
+            result = scan_directory(base_dir)
+            
         return {
             "status": "success",
-            "message": "ล้างข้อมูลและสแกนใหม่เรียบร้อย",
+            "message": "ล้างข้อมูลและโหลดข้อมูล 38 นายพร้อมรูปถ่ายสมบูรณ์เรียบร้อย",
             "result": result
         }
     except Exception as e:

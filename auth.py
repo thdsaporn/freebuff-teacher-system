@@ -32,10 +32,10 @@ async def verify_admin_key(
     Pass X-Admin-Key header with your API key to authenticate write requests.
     If ADMIN_API_KEY env is not set, access is open (dev mode).
     """
-    expected = get_api_key()
-    if not expected:
+    configured_key = os.environ.get("ADMIN_API_KEY", "")
+    if not configured_key:
         return ""
-    if not x_admin_key or not secrets.compare_digest(x_admin_key, expected):
+    if not x_admin_key or not secrets.compare_digest(x_admin_key, configured_key):
         raise HTTPException(
             status_code=401,
             detail="Unauthorized: Invalid or missing X-Admin-Key header"
