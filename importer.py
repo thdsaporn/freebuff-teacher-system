@@ -39,6 +39,9 @@ def extract_images_from_docx_element(elem, doc, prefix_name: str) -> str:
         xml_str = elem._element.xml
         blip_matches = re.findall(r'r:embed="([^"]+)"', xml_str)
         for r_id in blip_matches:
+            # Skip police badge logo
+            if r_id == 'rId6' or 'ตร-กก' in xml_str or 'logo' in xml_str.lower():
+                continue
             if r_id in doc.part.rels:
                 rel = doc.part.rels[r_id]
                 if "image" in rel.target_ref:
@@ -428,7 +431,7 @@ def merge_and_save_data(teacher_records: List[Dict[str, Any]]) -> Dict[str, Any]
             addr = rec.get("workplace_address") or existing["workplace_address"]
             phone = rec.get("phone") or existing["phone"]
             email = rec.get("email") or existing["email"]
-            photo = rec.get("photo_url") or existing["photo_url"]
+            photo = existing["photo_url"] or rec.get("photo_url")
             notes = rec.get("notes") or existing["notes"]
             
             cursor.execute("""
