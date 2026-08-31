@@ -1117,8 +1117,8 @@
             }
 
             tbody.innerHTML = teachers.map((t, idx) => {
-                const coursesStr = (t.courses || []).map((c, i) => `${i + 1}. ${c}`).join('<br>') || '-';
-                const subjectsStr = (t.subjects || []).map((s, i) => `${i + 1}. ${s}`).join('<br>') || '-';
+                const coursesStr = (t.courses || []).map((c, i) => `${i + 1}. ${escHtml(c)}`).join('<br>') || '-';
+                const subjectsStr = (t.subjects || []).map((s, i) => `${i + 1}. ${escHtml(s)}`).join('<br>') || '-';
                 const posStr = `${t.position || ''} ${t.affiliation || ''}`.trim() || '-';
 
                 return `
@@ -1129,8 +1129,8 @@
                         <td class="border border-slate-700 px-3 py-2">${escHtml(t.last_name || '')}</td>
                         <td class="border border-slate-700 px-3 py-2 leading-relaxed">${escHtml(posStr)}</td>
                         <td class="border border-slate-700 px-3 py-2 leading-relaxed">${escHtml(t.education_summary || '-')}</td>
-                        <td class="border border-slate-700 px-3 py-2 text-xs leading-relaxed">${escHtml(coursesStr)}</td>
-                        <td class="border border-slate-700 px-3 py-2 text-xs leading-relaxed">${escHtml(subjectsStr)}</td>
+                        <td class="border border-slate-700 px-3 py-2 text-xs leading-relaxed">${coursesStr}</td>
+                        <td class="border border-slate-700 px-3 py-2 text-xs leading-relaxed">${subjectsStr}</td>
                         <td class="border border-slate-700 px-2 py-2 text-center text-xs">${escHtml(t.notes || '')}</td>
                     </tr>
                 `;
