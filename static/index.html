@@ -39,7 +39,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+        <!-- Lucide Icons CDN with CDNJS / jsDelivr / unpkg Fallbacks -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>
+        if (typeof lucide === 'undefined') {
+            document.write('<script src="https://unpkg.com/lucide@latest"><\/script>');
+        }
+    </script>
     <style>
         body {
             font-family: 'Prompt', sans-serif;
@@ -704,6 +710,17 @@
 
     <!-- Application Script -->
     <script>
+        // Safe Icon Creator (prevents JS crashes if CDN fails)
+        function safeCreateIcons() {
+            try {
+                if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                    lucide.createIcons();
+                }
+            } catch(e) {
+                console.warn('Lucide icon warning:', e);
+            }
+        }
+
         // State
         let allTeachers = [];
         let currentFilter = 'all';
@@ -749,11 +766,11 @@
             return div.innerHTML;
         }
 
-        // Initialize
+        // Initialize (Robust with error protection)
         document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            loadStats();
-            loadTeachers();
+            try { loadStats(); } catch(e) { console.error('Stats error:', e); }
+            try { loadTeachers(); } catch(e) { console.error('Teachers error:', e); }
+            try { safeCreateIcons(); } catch(e) {}
         });
 
         // Toast Notification
@@ -790,7 +807,7 @@
                 document.getElementById('nav-roster').className = "nav-btn px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 bg-police-600/80 text-white shadow";
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         // View Mode Switcher (Grid vs Table)
@@ -832,10 +849,12 @@
                 allTeachers = await res.json();
                 renderTeachers();
                 
-                // Update Excel Export Link
+                // Update Excel Export Link safely
                 const exportUrl = currentFilter && currentFilter !== 'all' ? `/api/export-excel?course=${encodeURIComponent(currentFilter)}` : `/api/export-excel`;
-                document.getElementById('export-excel-btn').href = exportUrl;
-                document.getElementById('roster-export-excel').href = exportUrl;
+                const expBtn1 = document.getElementById('export-excel-btn');
+                if (expBtn1) expBtn1.href = exportUrl;
+                const expBtn2 = document.getElementById('roster-export-excel');
+                if (expBtn2) expBtn2.href = exportUrl;
             } catch (e) {
                 console.error(e);
             }
@@ -887,7 +906,7 @@
                         </div>
                     </div>
                 `;
-                lucide.createIcons();
+                safeCreateIcons();
                 return;
             }
 
@@ -1017,7 +1036,7 @@
                 `;
                 container.innerHTML = html;
             }
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         // =========================================================================
@@ -1196,7 +1215,7 @@
             addTeachingRow();
 
             document.getElementById('teacher-modal').classList.remove('hidden');
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         async function openEditTeacherModal(teacherId) {
@@ -1247,7 +1266,7 @@
                 if (!t.teaching_assignments || t.teaching_assignments.length === 0) addTeachingRow();
 
                 document.getElementById('teacher-modal').classList.remove('hidden');
-                lucide.createIcons();
+                safeCreateIcons();
             } catch (e) {
                 console.error(e);
                 showToast("ไม่สามารถโหลดข้อมูลเพื่อแก้ไขได้", false);
@@ -1270,7 +1289,7 @@
                 <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             `;
             document.getElementById('form-education-list').appendChild(div);
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         function addTrainingRow(year = '', course = '', org = '') {
@@ -1283,7 +1302,7 @@
                 <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             `;
             document.getElementById('form-training-list').appendChild(div);
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         function addWorkRow(date = '', role = '') {
@@ -1295,7 +1314,7 @@
                 <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             `;
             document.getElementById('form-work-list').appendChild(div);
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         function addTeachingRow(course = '', cat = '', subject = '') {
@@ -1312,7 +1331,7 @@
                 <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             `;
             document.getElementById('form-teaching-list').appendChild(div);
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         // Photo Upload Handling
@@ -1533,7 +1552,7 @@
             document.getElementById('upload-file-label').innerText = 'คลิกเพื่อเลือกไฟล์ Word หรือ Excel';
             document.getElementById('btn-do-upload').disabled = true;
             document.getElementById('upload-modal').classList.remove('hidden');
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         function closeUploadModal() {
@@ -1554,7 +1573,7 @@
             const btn = document.getElementById('btn-do-upload');
             btn.disabled = true;
             btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>กำลังนำเข้า...</span>`;
-            lucide.createIcons();
+            safeCreateIcons();
 
             const formData = new FormData();
             formData.append('file', selectedUploadFile);
