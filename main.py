@@ -353,6 +353,9 @@ def api_reset_and_scan(_auth: str = Depends(verify_admin_key)):
             if os.path.exists(fpath):
                 os.remove(fpath)
     
+    # Re-initialize DB
+    init_db()
+    
     # Re-scan or seed all files
     seed_file = os.path.join(os.path.dirname(__file__), "seed_data_perfect.json")
     try:
