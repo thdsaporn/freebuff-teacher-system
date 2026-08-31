@@ -865,7 +865,7 @@
 
                     const photoSrc = t.photo_url || '';
                     const photoEl = photoSrc ? 
-                        `<img src="${photoSrc}" class="w-16 h-20 rounded-lg object-cover shadow-sm border border-slate-200 shrink-0">` :
+                        `<img src="${photoSrc}" class="w-16 h-20 rounded-lg object-cover object-top shadow-sm border border-slate-200 shrink-0">` :
                         `<div class="w-16 h-20 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0"><i data-lucide="user" class="w-7 h-7"></i></div>`;
 
                     html += `
@@ -939,7 +939,7 @@
 
                     const photoSrc = t.photo_url || '';
                     const photoEl = photoSrc ? 
-                        `<img src="${photoSrc}" class="w-10 h-12 rounded object-cover shadow-sm border border-slate-200">` :
+                        `<img src="${photoSrc}" class="w-10 h-12 rounded object-cover object-top shadow-sm border border-slate-200">` :
                         `<div class="w-10 h-12 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><i data-lucide="user" class="w-5 h-5"></i></div>`;
 
                     html += `
