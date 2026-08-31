@@ -306,6 +306,38 @@ def api_export_excel(course: Optional[str] = Query(None)):
     )
 
 # =========================================================================
+# RESET DATABASE & RE-SCAN
+# =========================================================================
+
+@app.post("/api/reset-and-scan")
+def api_reset_and_scan(_auth: str = Depends(verify_admin_key)):
+    """Delete database and re-scan all files with updated importer logic."""
+    import shutil as _shutil
+    
+    # Delete existing database
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
+        # Also remove WAL/SHM files
+        for suffix in ['-wal', '-shm', '-journal']:
+            f = DB_PATH + suffix
+            if os.path.exists(f):
+                os.remove(f)
+    
+    # Re-initialize DB
+    init_db()
+    
+    # Re-scan all files
+    base_dir = os.path.dirname(__file__)
+    result = scan_directory(base_dir)
+    
+    return {
+        "status": "success",
+        "message": "ล้างข้อมูลและสแกนใหม่เรียบร้อย",
+        "result": result
+    }
+
+
+# =========================================================================
 # BACKUP & RESTORE
 # =========================================================================
 

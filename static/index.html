@@ -121,7 +121,11 @@
                     </button>
                     <button onclick="scanFolder()" class="px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40">
                         <i data-lucide="refresh-cw" class="w-4 h-4" id="scan-icon"></i>
-                        <span class="hidden md:inline">สแกน/รวมข้อมูลในโฟลเดอร์</span>
+                        <span class="hidden md:inline">สแกน/รวมข้อมูล</span>
+                    </button>
+                    <button onclick="resetAndScan()" class="px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/40">
+                        <i data-lucide="trash-2" class="w-4 h-4" id="reset-icon"></i>
+                        <span class="hidden md:inline">ล้างและสแกนใหม่</span>
                     </button>
                     <button onclick="openUploadModal()" class="px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 bg-emerald-600/30 text-emerald-300 hover:bg-emerald-600/40 border border-emerald-500/40">
                         <i data-lucide="upload-cloud" class="w-4 h-4"></i>
@@ -1454,6 +1458,34 @@
         }
 
         // Scan Folder & Auto-merge
+        async function resetAndScan() {
+            if (!confirm('⚠️ ล้างข้อมูลทั้งหมดแล้วสแกนใหม่?
+
+ข้อมูลเดิมจะถูกลบ แต่ระบบจะสแกนไฟล์ Word/Excel ในโฟลเดอร์ใหม่อัตโนมัติ')) return;
+            
+            const resetIcon = document.getElementById('reset-icon');
+            resetIcon.classList.add('animate-spin');
+            showToast("กำลังล้างข้อมูลและสแกนใหม่...");
+            
+            try {
+                const res = await fetch('/api/reset-and-scan', { method: 'POST', headers: getAuthHeaders() });
+                const data = await res.json();
+                resetIcon.classList.remove('animate-spin');
+                if (data.status === 'success') {
+                    const r = data.result;
+                    showToast(`ล้างและสแกนใหม่สำเร็จ: พบ ${r.total_processed} รายการ (ใหม่ ${r.new_count}, ซ้ำ ${r.merged_count})`);
+                    loadStats();
+                    loadTeachers();
+                } else {
+                    showToast(data.detail || "เกิดข้อผิดพลาด", false);
+                }
+            } catch (e) {
+                resetIcon.classList.remove('animate-spin');
+                console.error(e);
+                showToast("เกิดข้อผิดพลาดในการล้างและสแกนใหม่", false);
+            }
+        }
+
         async function scanFolder() {
             const scanIcon = document.getElementById('scan-icon');
             scanIcon.classList.add('animate-spin');
