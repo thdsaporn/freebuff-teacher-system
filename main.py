@@ -338,24 +338,29 @@ def api_reset_and_scan(_auth: str = Depends(verify_admin_key)):
     # Delete existing database
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
-        # Also remove WAL/SHM files
         for suffix in ['-wal', '-shm', '-journal']:
-            f = DB_PATH + suffix
-            if os.path.exists(f):
-                os.remove(f)
+            fpath = DB_PATH + suffix
+            if os.path.exists(fpath):
+                os.remove(fpath)
     
     # Re-initialize DB
     init_db()
     
     # Re-scan all files
     base_dir = os.path.dirname(__file__)
-    result = scan_directory(base_dir)
-    
-    return {
-        "status": "success",
-        "message": "ล้างข้อมูลและสแกนใหม่เรียบร้อย",
-        "result": result
-    }
+    try:
+        result = scan_directory(base_dir)
+        return {
+            "status": "success",
+            "message": "ล้างข้อมูลและสแกนใหม่เรียบร้อย",
+            "result": result
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"เกิดข้อผิดพลาด: {str(e)}",
+            "result": {"total_processed": 0, "new_count": 0, "merged_count": 0, "errors": [str(e)]}
+        }
 
 
 # =========================================================================

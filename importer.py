@@ -564,6 +564,9 @@ def merge_and_save_data(teacher_records: List[Dict[str, Any]]) -> Dict[str, Any]
 def scan_directory(base_dir: str) -> Dict[str, Any]:
     all_records = []
     scanned_files = []
+    errors = []
+    
+    print(f"[SCAN] Starting scan from: {base_dir}")
     
     for root, dirs, files in os.walk(base_dir):
         # Ignore system or venv folders
@@ -577,19 +580,28 @@ def scan_directory(base_dir: str) -> Dict[str, Any]:
                 scanned_files.append(path)
                 try:
                     records = parse_docx_file(path)
+                    print(f"[SCAN] Parsed {f}: {len(records)} records")
                     all_records.extend(records)
                 except Exception as e:
-                    print(f"Error parsing {path}: {e}")
+                    error_msg = f"Error parsing {path}: {e}"
+                    print(f"[SCAN] {error_msg}")
+                    errors.append(error_msg)
                     
             elif f.lower().endswith('.xlsx'):
                 scanned_files.append(path)
                 try:
                     records = parse_xlsx_file(path)
+                    print(f"[SCAN] Parsed {f}: {len(records)} records")
                     all_records.extend(records)
                 except Exception as e:
-                    print(f"Error parsing {path}: {e}")
-                    
+                    error_msg = f"Error parsing {path}: {e}"
+                    print(f"[SCAN] {error_msg}")
+                    errors.append(error_msg)
+    
+    print(f"[SCAN] Total records found: {len(all_records)}")
+    
     # Merge and save
     result = merge_and_save_data(all_records)
     result["scanned_files"] = scanned_files
+    result["errors"] = errors
     return result
