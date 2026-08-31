@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+teachers.db
+teachers_backup_*.db
+backups/
+uploads/photos/
+uploads/*.docx
+uploads/*.xlsx
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+.freebuff/
