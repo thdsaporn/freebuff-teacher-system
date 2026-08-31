@@ -67,10 +67,13 @@ def parse_docx_file(filepath: str) -> List[Dict[str, Any]]:
         if tag == 'p':
             p_elem = docx.text.paragraph.Paragraph(child, doc)
             txt = p_elem.text.strip()
-            if 'ประวัติ ครู อาจารย์ ครูฝึก' in txt:
+            # Split on section header (check multiple patterns)
+            if ('ประวัติ ครู อาจารย์ ครูฝึก' in txt or 
+                'ประวัติครูอาจารย์' in txt or
+                (txt.strip() == '' and current_sec.get('_seen_header', False))):
                 if current_sec['paragraphs'] or current_sec['tables']:
                     sections.append(current_sec)
-                current_sec = {'elements': [p_elem], 'paragraphs': [p_elem], 'tables': []}
+                current_sec = {'elements': [p_elem], 'paragraphs': [p_elem], 'tables': [], '_seen_header': True}
             else:
                 current_sec['elements'].append(p_elem)
                 if txt:
@@ -116,13 +119,30 @@ def parse_docx_file(filepath: str) -> List[Dict[str, Any]]:
         if not first_name or not last_name or first_name == 'สกุล':
             continue
             
-        # Extract Photo
+        # Extract Photo (from paragraphs AND table cells)
         photo_url = ""
+        # Search paragraphs first
         for p in sec['paragraphs']:
             img_url = extract_images_from_docx_element(p, doc, f"{first_name}_{last_name}_{sec_idx}")
             if img_url:
                 photo_url = img_url
                 break
+        # If no photo in paragraphs, search table cells
+        if not photo_url:
+            for table in sec.get('tables', []):
+                for row in table.rows:
+                    for cell in row.cells:
+                        for p in cell.paragraphs:
+                            img_url = extract_images_from_docx_element(p, doc, f"{first_name}_{last_name}_{sec_idx}")
+                            if img_url:
+                                photo_url = img_url
+                                break
+                        if photo_url:
+                            break
+                    if photo_url:
+                        break
+                if photo_url:
+                    break
                 
         # Position & Affiliation
         position, affiliation = '', ''
