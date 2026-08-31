@@ -306,6 +306,27 @@ def api_export_excel(course: Optional[str] = Query(None)):
     )
 
 # =========================================================================
+# DEBUG: LIST AVAILABLE FILES
+# =========================================================================
+
+@app.get("/api/debug/files")
+def api_debug_files():
+    """List all .docx and .xlsx files available for scanning."""
+    import glob as _glob
+    base_dir = os.path.dirname(__file__)
+    files = []
+    for pattern in ['**/*.docx', '**/*.xlsx']:
+        for f in _glob.glob(os.path.join(base_dir, pattern), recursive=True):
+            if '__pycache__' in f or '.freebuff' in f or f.startswith('~'):
+                continue
+            files.append({
+                'path': os.path.relpath(f, base_dir),
+                'size': os.path.getsize(f)
+            })
+    return {'base_dir': base_dir, 'files': files, 'count': len(files)}
+
+
+# =========================================================================
 # RESET DATABASE & RE-SCAN
 # =========================================================================
 
