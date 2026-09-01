@@ -411,21 +411,34 @@
 
             <!-- Roster Print Action Bar -->
             <div class="no-print bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <button onclick="switchView('directory')" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition">
+                <div class="flex flex-wrap items-center gap-3">
+                    <button onclick="switchView('directory')" class="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition border border-slate-200">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i>
                         <span>กลับหน้ารายชื่อ</span>
                     </button>
 
                     <div class="flex items-center gap-2">
                         <label class="text-xs font-semibold text-slate-500 uppercase">เลือกหลักสูตร:</label>
-                        <select id="roster-course-select" onchange="renderRosterPrint()" class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium">
+                        <select id="roster-course-select" onchange="onRosterCourseChange()" class="px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium">
                             <option value="all">ทุกหลักสูตร</option>
                             <option value="นสต">หลักสูตร นสต.</option>
                             <option value="กดต">หลักสูตร กดต.</option>
                             <option value="นรต">หลักสูตร นรต.</option>
                             <option value="ตชด">หลักสูตร ตชด.ระดับพื้นฐาน</option>
                         </select>
+                    </div>
+
+                    <!-- Batch Selection Controls -->
+                    <div class="flex items-center gap-1.5 pl-2 sm:border-l border-slate-200">
+                        <button onclick="toggleAllRosterCheckboxes(true)" class="px-2.5 py-1.5 text-xs font-semibold text-police-700 bg-police-50 hover:bg-police-100 rounded-lg border border-police-200 transition">
+                            เลือกทั้งหมด
+                        </button>
+                        <button onclick="toggleAllRosterCheckboxes(false)" class="px-2.5 py-1.5 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-300 transition">
+                            ยกเลิกทั้งหมด
+                        </button>
+                        <span id="roster-selected-count" class="text-xs font-bold text-police-800 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-lg ml-1">
+                            เลือก 0 / 0 นาย
+                        </span>
                     </div>
                 </div>
 
@@ -453,6 +466,9 @@
                 <table class="w-full border-collapse border border-slate-700 text-xs sm:text-sm mb-8">
                     <thead>
                         <tr class="bg-slate-100">
+                            <th class="no-print border border-slate-700 px-2 py-2 text-center w-10">
+                                <input type="checkbox" id="roster-master-cb" checked onchange="toggleAllRosterCheckboxes(this.checked)" class="w-4 h-4 rounded text-police-600 focus:ring-police-500 cursor-pointer" title="เลือก/ยกเลิกทั้งหมด">
+                            </th>
                             <th class="border border-slate-700 px-2 py-2 text-center w-10">ลำดับ</th>
                             <th class="border border-slate-700 px-2 py-2 text-center w-16">ยศ</th>
                             <th class="border border-slate-700 px-3 py-2 text-center w-28">ชื่อ</th>
@@ -820,6 +836,9 @@
                             width: 100% !important;
                             padding: 0 !important;
                         }
+                        .roster-unselected-row {
+                            display: none !important;
+                        }
                     }
                 `;
             } else {
@@ -1184,10 +1203,92 @@
             }
         }
 
+        let selectedRosterTeacherIds = new Set();
+        let currentFilteredRoster = [];
+
         function openRosterPrint() {
             setPrintOrientation('landscape');
+            // Default: Select all teachers
+            selectedRosterTeacherIds = new Set(allTeachers.map(t => String(t.id)));
             switchView('roster');
             renderRosterPrint();
+        }
+
+        function onRosterCourseChange() {
+            const courseVal = document.getElementById('roster-course-select').value;
+            let list = allTeachers;
+            if (courseVal !== 'all') {
+                list = list.filter(t => {
+                    const cList = t.courses || (t.teaching_assignments || []).map(ta => ta.course_type);
+                    return cList.some(c => c && c.toLowerCase().includes(courseVal.toLowerCase()));
+                });
+            }
+            // Auto-select all in the newly selected course
+            selectedRosterTeacherIds = new Set(list.map(t => String(t.id)));
+            renderRosterPrint();
+        }
+
+        function toggleAllRosterCheckboxes(checked) {
+            if (checked) {
+                currentFilteredRoster.forEach(t => selectedRosterTeacherIds.add(String(t.id)));
+            } else {
+                currentFilteredRoster.forEach(t => selectedRosterTeacherIds.delete(String(t.id)));
+            }
+            const masterCb = document.getElementById('roster-master-cb');
+            if (masterCb) masterCb.checked = checked;
+            updateRosterTableSelectionVisuals();
+        }
+
+        function onRosterItemCheckboxChange(teacherId, checked) {
+            if (checked) {
+                selectedRosterTeacherIds.add(String(teacherId));
+            } else {
+                selectedRosterTeacherIds.delete(String(teacherId));
+            }
+            updateRosterTableSelectionVisuals();
+        }
+
+        function updateRosterTableSelectionVisuals() {
+            const total = currentFilteredRoster.length;
+            let selectedCount = 0;
+            let currentPrintIndex = 1;
+
+            currentFilteredRoster.forEach(t => {
+                const isSelected = selectedRosterTeacherIds.has(String(t.id));
+                const rowEl = document.getElementById(`roster-row-${t.id}`);
+                const cbEl = document.getElementById(`roster-cb-${t.id}`);
+                const numEl = document.getElementById(`roster-num-${t.id}`);
+
+                if (cbEl) cbEl.checked = isSelected;
+
+                if (isSelected) {
+                    selectedCount++;
+                    if (rowEl) {
+                        rowEl.classList.remove('roster-unselected-row', 'opacity-35', 'bg-slate-50');
+                        rowEl.classList.add('bg-white');
+                    }
+                    if (numEl) numEl.innerText = currentPrintIndex++;
+                } else {
+                    if (rowEl) {
+                        rowEl.classList.add('roster-unselected-row', 'opacity-35', 'bg-slate-50');
+                        rowEl.classList.remove('bg-white');
+                    }
+                    if (numEl) numEl.innerText = '-';
+                }
+            });
+
+            // Update Counter Text
+            const counterEl = document.getElementById('roster-selected-count');
+            if (counterEl) {
+                counterEl.innerText = `เลือก ${selectedCount} / ${total} นาย`;
+            }
+
+            // Update Master Checkbox state
+            const masterCb = document.getElementById('roster-master-cb');
+            if (masterCb) {
+                masterCb.checked = (selectedCount === total && total > 0);
+                masterCb.indeterminate = (selectedCount > 0 && selectedCount < total);
+            }
         }
 
         function renderRosterPrint() {
@@ -1203,34 +1304,48 @@
                 });
             }
 
+            currentFilteredRoster = list;
+
             const tbody = document.getElementById('roster-table-body');
             if (!tbody) return;
 
             if (!list || list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="border border-slate-700 px-4 py-4 text-center text-slate-400">ไม่พบรายชื่อในหลักสูตรนี้</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="border border-slate-700 px-4 py-4 text-center text-slate-400">ไม่พบรายชื่อในหลักสูตรนี้</td></tr>`;
+                const counterEl = document.getElementById('roster-selected-count');
+                if (counterEl) counterEl.innerText = 'เลือก 0 / 0 นาย';
                 return;
             }
 
-            tbody.innerHTML = list.map((t, idx) => {
+            // If empty selection set on first render, populate with all
+            if (selectedRosterTeacherIds.size === 0) {
+                selectedRosterTeacherIds = new Set(list.map(t => String(t.id)));
+            }
+
+            tbody.innerHTML = list.map((t) => {
                 const coursesStr = (t.courses || []).map((c, i) => `${i + 1}. ${c}`).join('<br>') || '-';
                 const subjectsStr = (t.subjects || (t.teaching_assignments || []).map(ta => ta.subject_name)).filter(Boolean);
                 const uniqueSubj = Array.from(new Set(subjectsStr)).map((s, i) => `${i + 1}. ${s}`).join('<br>') || '-';
                 const posStr = `${t.position || ''} ${t.affiliation || ''}`.trim() || '-';
 
                 return `
-                    <tr>
-                        <td class="border border-slate-700 px-2 py-2 text-center">${idx + 1}</td>
-                        <td class="border border-slate-700 px-2 py-2 text-center font-bold">${t.prefix_rank || ''}</td>
-                        <td class="border border-slate-700 px-3 py-2">${t.first_name || ''}</td>
-                        <td class="border border-slate-700 px-3 py-2">${t.last_name || ''}</td>
+                    <tr id="roster-row-${t.id}" class="transition duration-150">
+                        <td class="no-print border border-slate-700 px-2 py-2 text-center w-10 bg-slate-50/70">
+                            <input type="checkbox" id="roster-cb-${t.id}" onchange="onRosterItemCheckboxChange('${t.id}', this.checked)" class="w-4 h-4 rounded text-police-600 focus:ring-police-500 cursor-pointer">
+                        </td>
+                        <td id="roster-num-${t.id}" class="border border-slate-700 px-2 py-2 text-center font-semibold text-slate-800">1</td>
+                        <td class="border border-slate-700 px-2 py-2 text-center font-bold whitespace-nowrap">${t.prefix_rank || ''}</td>
+                        <td class="border border-slate-700 px-3 py-2 whitespace-nowrap">${t.first_name || ''}</td>
+                        <td class="border border-slate-700 px-3 py-2 whitespace-nowrap">${t.last_name || ''}</td>
                         <td class="border border-slate-700 px-3 py-2 leading-relaxed">${posStr}</td>
                         <td class="border border-slate-700 px-3 py-2 leading-relaxed">${t.education_summary || '-'}</td>
-                        <td class="border border-slate-700 px-3 py-2 text-xs leading-relaxed">${coursesStr}</td>
+                        <td class="border border-slate-700 px-3 py-2 text-xs leading-relaxed whitespace-nowrap">${coursesStr}</td>
                         <td class="border border-slate-700 px-3 py-2 text-xs leading-relaxed">${uniqueSubj}</td>
                         <td class="border border-slate-700 px-2 py-2 text-center text-xs">${t.notes || ''}</td>
                     </tr>
                 `;
             }).join('');
+
+            updateRosterTableSelectionVisuals();
         }
 
         function openTeacherModal() {
