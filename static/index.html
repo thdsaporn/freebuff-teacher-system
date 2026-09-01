@@ -323,7 +323,7 @@
 
                     <!-- Photo Box (Standard 1.5 inch) -->
                     <div class="w-28 h-36 border-2 border-slate-400 rounded p-1 flex items-center justify-center bg-slate-50 shrink-0 text-center">
-                        <img id="print-photo" src="" alt="รูปถ่าย" class="w-full h-full object-cover hidden">
+                        <img id="print-photo" src="" alt="รูปถ่าย" class="w-full h-full object-contain bg-white hidden">
                         <div id="print-photo-placeholder" class="text-xs text-slate-400">
                             รูปถ่าย<br>1.5 นิ้ว
                         </div>
@@ -514,7 +514,7 @@
                     <!-- Photo Picker -->
                     <div class="flex flex-col items-center gap-2 shrink-0">
                         <div class="w-28 h-36 border-2 border-dashed border-slate-300 rounded-xl overflow-hidden flex items-center justify-center bg-slate-50 relative group cursor-pointer" onclick="document.getElementById('form-photo-input').click()">
-                            <img id="form-photo-preview" src="" class="w-full h-full object-cover hidden">
+                            <img id="form-photo-preview" src="" class="w-full h-full object-contain bg-white hidden">
                             <div id="form-photo-placeholder" class="text-center p-2 text-slate-400 group-hover:text-police-600 transition">
                                 <i data-lucide="camera" class="w-6 h-6 mx-auto mb-1"></i>
                                 <span class="text-[11px] block">อัปโหลดรูป</span>
@@ -915,7 +915,7 @@
 
                     const photoSrc = getValidPhoto(t);
                     const photoEl = photoSrc ? 
-                        `<img src="${photoSrc}" class="w-16 h-20 rounded-lg object-cover shadow-sm border border-slate-200 shrink-0">` :
+                        `<img src="${photoSrc}" class="w-16 h-20 rounded-lg object-cover object-top shadow-sm border border-slate-200 shrink-0 bg-slate-50">` :
                         `<div class="w-16 h-20 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 shrink-0"><i data-lucide="user" class="w-7 h-7"></i></div>`;
 
                     html += `
@@ -987,7 +987,7 @@
 
                     const photoSrc = getValidPhoto(t);
                     const photoEl = photoSrc ? 
-                        `<img src="${photoSrc}" class="w-10 h-12 rounded object-cover shadow-sm border border-slate-200">` :
+                        `<img src="${photoSrc}" class="w-10 h-12 rounded object-cover object-top shadow-sm border border-slate-200 bg-slate-50">` :
                         `<div class="w-10 h-12 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400"><i data-lucide="user" class="w-5 h-5"></i></div>`;
 
                     html += `
