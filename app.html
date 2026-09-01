@@ -1003,12 +1003,12 @@
                             <table class="w-full text-left text-sm">
                                 <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase">
                                     <tr>
-                                        <th class="px-4 py-3.5 w-12 text-center">#</th>
-                                        <th class="px-4 py-3.5 min-w-[200px]">ยศ - ชื่อ - สกุล</th>
-                                        <th class="px-4 py-3.5 min-w-[160px]">ตำแหน่ง / สังกัด</th>
-                                        <th class="px-4 py-3.5 min-w-[220px]">หลักสูตรที่สอน</th>
-                                        <th class="px-4 py-3.5 min-w-[180px]">วุฒิการศึกษา</th>
-                                        <th class="px-4 py-3.5 text-center w-36">จัดการ</th>
+                                        <th class="px-4 py-3.5 w-12 text-center whitespace-nowrap">#</th>
+                                        <th class="px-4 py-3.5 whitespace-nowrap min-w-[220px]">ยศ - ชื่อ - สกุล</th>
+                                        <th class="px-4 py-3.5 whitespace-nowrap min-w-[160px]">ตำแหน่ง / สังกัด</th>
+                                        <th class="px-4 py-3.5 whitespace-nowrap min-w-[200px]">หลักสูตรที่สอน</th>
+                                        <th class="px-4 py-3.5 whitespace-nowrap min-w-[180px]">วุฒิการศึกษา</th>
+                                        <th class="px-4 py-3.5 text-center w-32 whitespace-nowrap">จัดการ</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -1026,14 +1026,14 @@
 
                     html += `
                         <tr class="hover:bg-slate-50/90 transition group/row">
-                            <td class="px-4 py-3 text-center text-xs font-semibold text-slate-400">${i + 1}</td>
-                            <td class="px-4 py-3 relative">
+                            <td class="px-4 py-3 text-center text-xs font-semibold text-slate-400 whitespace-nowrap">${i + 1}</td>
+                            <td class="px-4 py-3 relative whitespace-nowrap">
                                 <div class="inline-block group/name relative cursor-pointer" onclick="viewTeacherProfile('${t.id}')">
-                                    <div class="font-bold text-police-900 group-hover/name:text-police-600 transition flex items-center gap-1.5">
-                                        <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60">${t.prefix_rank || 'ยศ'}</span>
-                                        <span>${t.first_name} ${t.last_name}</span>
+                                    <div class="font-bold text-police-900 group-hover/name:text-police-600 transition flex items-center gap-2 whitespace-nowrap">
+                                        <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 shrink-0 whitespace-nowrap">${t.prefix_rank || 'ยศ'}</span>
+                                        <span class="whitespace-nowrap">${t.first_name} ${t.last_name}</span>
                                     </div>
-                                    <div class="text-xs text-slate-400 mt-0.5">${t.phone || ''}</div>
+                                    <div class="text-xs text-slate-400 mt-0.5 whitespace-nowrap">${t.phone || ''}</div>
 
                                     <!-- Smart Hover Profile Card Popup -->
                                     <div class="pointer-events-none opacity-0 invisible group-hover/name:opacity-100 group-hover/name:visible transition-all duration-200 ease-out transform -translate-y-2 group-hover/name:translate-y-0 absolute left-0 top-full mt-2 z-50 w-80 bg-white rounded-2xl p-4 shadow-2xl border border-slate-200/90 text-left font-sans animate-in fade-in zoom-in-95">
@@ -1067,16 +1067,16 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-xs text-slate-600">
-                                <div class="font-medium text-slate-800">${t.position || '-'}</div>
-                                <div class="text-slate-400">${t.affiliation || ''}</div>
+                            <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">
+                                <div class="font-medium text-slate-800 whitespace-nowrap">${t.position || '-'}</div>
+                                <div class="text-slate-400 whitespace-nowrap">${t.affiliation || ''}</div>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 whitespace-nowrap">
                                 <div class="flex flex-wrap gap-1 items-center">
                                     ${coursesTags || '<span class="text-xs text-slate-400">-</span>'}
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-xs text-slate-600 truncate max-w-xs">${t.education_summary || '-'}</td>
+                            <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap truncate max-w-xs">${t.education_summary || '-'}</td>
                             <td class="px-4 py-3 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
                                     <button onclick="viewTeacherProfile('${t.id}')" class="p-1.5 rounded-lg text-police-700 hover:bg-police-100 transition" title="พิมพ์ใบประวัติ">
